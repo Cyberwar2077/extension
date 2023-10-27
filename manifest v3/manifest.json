@@ -1,0 +1,12 @@
+{
+    "manifest_version": 3,
+    "name": "Test",
+    "description": "Testing",
+    "version": "1.0",
+    "permissions": ["scripting"],
+    "host_permissions": ["<all_urls>"],
+    "action": {
+        "default_title": "Shortcut",
+        "default_popup": "popup.html"
+    }
+}

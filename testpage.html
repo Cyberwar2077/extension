@@ -1,0 +1,51 @@
+<html lang="en">
+	<head>
+		<script type = "text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script> 
+		<script>
+			//to update form data
+			function splitQueryString(queryString, keyToUpdate, valueToUpdate) {
+				var pairs = queryString.split('&');
+				var result = {};
+				for (var i = 0; i < pairs.length; i++) {
+					var pair = pairs[i].split('=');
+					var key = decodeURIComponent(pair[0]);
+					var value = decodeURIComponent(pair[1]);
+					if (key === keyToUpdate) {
+						value = valueToUpdate;
+					}
+					result[key] = value;
+				}
+				if (!(keyToUpdate in result)) {
+					result[keyToUpdate] = valueToUpdate;
+				}
+				// Serialize the result object back into a query string
+				var updatedQueryString = Object.keys(result).map(function(key) {
+					return encodeURIComponent(key) + '=' + encodeURIComponent(result[key]);
+				}).join('&');
+				return updatedQueryString;
+			}
+			
+			function myFunction() {
+			  console.log("clicked");
+			}
+			//for get request
+			const oldXHROpen = window.XMLHttpRequest.prototype.open;
+			window.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+				this._url=url;
+				return oldXHROpen.call(this, method, url, ...rest);
+			}
+			//for post request
+			XMLHttpRequest.prototype.realSend = XMLHttpRequest.prototype.send; 
+			XMLHttpRequest.prototype.send = function(vData) { 
+				if (this._url && this._url.includes("your_server_endpoint")) {
+				if(typeof(vData) === 'string' || vData instanceof String)
+					vData=splitQueryString(vData, 'email', 'newemail@example.com');
+				}
+				this.realSend(vData);
+			};
+		</script>
+	</head>
+	<body>
+		<button id="qwerty" onclick="myFunction()"> test </button>
+	</body>
+</html>
