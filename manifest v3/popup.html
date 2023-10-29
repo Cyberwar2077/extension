@@ -1,9 +1,47 @@
 <!doctype html>  
 <html>  
-    <head><title>activity</title></head>  
-<body> 
-	<span id="dynamic"></span>
-	<button id="add">add</button>	
-    <script src="popup.js"></script> 
+    <head>
+		<style>
+			span,input,label,button {
+				margin-top : 10px;
+			}
+			#executeForm {
+				max-height:250px;
+				overflow-y:auto;
+			}
+			body {
+			  min-width: 250px;
+			}
+		</style>
+	</head>  
+<body>
+	<div id="executeForm">
+		<span id="dynamic"></span>
+		<button id="new">New</button>
+	</div>
+	<span id="newForm" hidden="true">
+		<label>Type:</label>
+		<input type="radio" id="Type1" name="Type" value="override param" checked>
+		<label for="Type1">override param</label>
+		<input type="radio" id="Type2" name="Type" value="execute directly">
+		<label for="Type2">execute directly</label><br>
+		<label for="Name" style="display:inline-block;width:56px">Name:</label>
+		<input type="text" id="Name"/><br/>
+		<span id="override param form">
+			<label for="Url" style="display:inline-block;width:56px">Url:</label>
+			<input type="text" id="Url"/><br/>
+			<label for="Param" style="display:inline-block;width:56px">Param:</label>
+			<input type="text" id="Param"/><br/>
+			<label for="Replace" style="display:inline-block;width:56px">Replace:</label>
+			<input type="text" id="Replace"/><br/>
+		</span>
+		<span id="execute directly form" hidden>
+			<label for="Data" style="display:inline-block;width:56px">Data:</label>
+			<input type="text" id="Data"/><br/>
+		</span>
+		<button id="add">Save</button>
+		<button id="cancel">Cancel</button>
+	</span>	
+    <script src="popup.js"></script>
 </body>
 </html> 
