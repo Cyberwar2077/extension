@@ -52,9 +52,6 @@ function interceptRequest(){
 			return updatedQueryString;
 		}
 		
-		function myFunction() {
-		  console.log("clicked");
-		}
 		//for get request
 		const oldXHROpen = window.XMLHttpRequest.prototype.open;
 		window.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
@@ -64,23 +61,56 @@ function interceptRequest(){
 		//for post request
 		XMLHttpRequest.prototype.realSend = XMLHttpRequest.prototype.send; 
 		XMLHttpRequest.prototype.send = function(vData) { 
-			var overrides=document.getElementById("interceptorDetails").getElementsByTagName("span");
-			for(var i=0;i<overrides.length;i++){
-				var override=overrides[i];
-				var overrideUrl=override.getAttribute("url");
-				var overrideUrlParam=override.getAttribute("value");
-				var overrideParamValue=override.getAttribute("replace");
-				var overrideUrlCheck=override.getAttribute("urlCondition"); 
-				if (this._url && (("equals"===overrideUrlCheck && this._url===(overrideUrl)||("contains"===overrideUrlCheck && this._url.includes(overrideUrl))))) {
-				if(typeof(vData) === 'string' || vData instanceof String)
-					vData=splitQueryString(vData, overrideUrlParam, overrideParamValue);
-					break;
+		var interceptorElement=document.getElementById('interceptorDetails');
+			if(interceptorElement){
+				var overrides=interceptorElement.getElementsByTagName("span");
+				for(var i=0;i<overrides.length;i++){
+					var override=overrides[i];
+					var overrideUrl=override.getAttribute("url");
+					var overrideUrlParam=override.getAttribute("value");
+					var overrideParamValue=override.getAttribute("replace");
+					var overrideResponseValue=override.getAttribute("response");
+					var overrideUrlCheck=override.getAttribute("urlCondition"); 
+					if (this._url && (("equals"===overrideUrlCheck && this._url===(overrideUrl)||("contains"===overrideUrlCheck && this._url.includes(overrideUrl))))) {
+					if(typeof(vData) === 'string' || vData instanceof String)
+						vData=splitQueryString(vData, overrideUrlParam, overrideParamValue);
+						break;
+					}
 				}
 			}
+			this.addEventListener("readystatechange", function (response) {
+				var original_response, modified_response;
+				if (this.readyState === 4) {
+					if(interceptorElement){
+						var overrides=interceptorElement.getElementsByTagName("span");
+						for(var i=0;i<overrides.length;i++){
+							var override=overrides[i];
+							var overrideUrl=override.getAttribute("url");
+							var overrideUrlParam=override.getAttribute("value");
+							var overrideParamValue=override.getAttribute("replace");
+							var overrideResponseValue=override.getAttribute("response");
+							var overrideUrlCheck=override.getAttribute("urlCondition"); 
+							if (overrideResponseValue && this._url && (("equals"===overrideUrlCheck && this._url===(overrideUrl)||("contains"===overrideUrlCheck && this._url.includes(overrideUrl))))) {
+								if(overrideResponseValue.startsWith('response.')){
+									var overrideResponseValueExpected = overrideResponseValue.split('response.')[0];
+									let [key,value]=overrideResponseValueExpected.split('=');
+									original_response = response.target.responseText;
+									Object.defineProperty(this, "responseText", {writable: true});
+									modified_response = JSON.parse(original_response);
+									modified_response.key = value;
+									this.responseText = JSON.stringify(modified_response);
+								}else{
+									setTimeout(eval(overrideResponseValue),1000);
+								}
+							}
+						}
+					}
+				}
+			});
 			this.realSend(vData);
 		};
 		
-		function addInterceptorElement(displayName,url,param,replace) {
+		function addInterceptorElement(displayName,url,param,replace,response) {
 			var interceptorElement=document.getElementById('interceptorDetails');
 			if(!interceptorElement){
 				var interceptorElement = document.createElement("span");
@@ -94,6 +124,7 @@ function interceptRequest(){
 				newInterceptorDetails.setAttribute("url", url);
 				newInterceptorDetails.setAttribute("value", param);
 				newInterceptorDetails.setAttribute("replace", replace);
+				newInterceptorDetails.setAttribute("response", response);
 				newInterceptorDetails.setAttribute("urlCondition", "contains");
 				interceptorElement.appendChild(newInterceptorDetails);
 			}
@@ -177,14 +208,15 @@ function saveNewOverride(){
 	if(selectedType==="override param"){
 		var selectedUrl=document.getElementById('Url').value;
 		var selectedParam=document.getElementById('Param').value;
-		var selectedReplacement=document.getElementById('Replace').value;
-		injectTheScript("addInterceptorElement('"+name+"','"+selectedUrl+"','"+selectedParam+"','"+selectedReplacement+"');");
+		var selectedReplacement=document.getElementById('Request').value;
+		var selectedResponse=document.getElementById('Response').value;
+		injectTheScript("addInterceptorElement('"+name+"','"+selectedUrl+"','"+selectedParam+"','"+selectedReplacement+"','"+selectedResponse+"');");
 		addScriptElement(name,selectedUrl,false);
 		var newForm=document.getElementById('newForm');
 		newForm.hidden=true;
 		var executeForm=document.getElementById('executeForm');
 		executeForm.hidden=false;
-		interceptMap.set(name,selectedUrl+','+selectedParam+','+selectedReplacement);
+		interceptMap.set(name,selectedUrl+','+selectedParam+','+selectedReplacement+','+selectedResponse);
 	}else{
 		var selectedScript=document.getElementById('Data').value;
 		addScriptElement(name,selectedScript,true);
@@ -198,7 +230,7 @@ function clearForm(){
 	document.getElementById('Name').value="";
 	document.getElementById('Url').value="";
 	document.getElementById('Param').value="";
-	document.getElementById('Replace').value="";
+	document.getElementById('Request').value="";
 	document.getElementById('Data').value="";
 	document.getElementById('Type1'),checked=true;
 }
@@ -215,12 +247,13 @@ function initilaize(){
 	if(savedInterceptData){
 		interceptMap=new Map(JSON.parse(savedInterceptData));
 		for (let [key, value] of interceptMap) {
-			let [name,url,param,...rest] = value.split(',');
+			let [url,param,replace,...rest] = value.split(',');
 			var selectedUrl=url;
 			var selectedParam=param;
-			var selectedReplacement=rest.join(',');
+			var selectedReplacement=replace;
+			var selectedResponse=rest.join(',');
 			addScriptElement(key,value,false);
-			injectTheScript("addInterceptorElement('"+key+"','"+selectedUrl+"','"+selectedParam+"','"+selectedReplacement+"');");
+			injectTheScript("addInterceptorElement('"+key+"','"+selectedUrl+"','"+selectedParam+"','"+selectedReplacement+"','"+selectedResponse+"');");
 		}
 	}
 }

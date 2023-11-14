@@ -1,11 +1,50 @@
 <html lang="en">
 	<head>
-		<script type = "text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script> 
-		<script>
-			
-		</script>
+		<script type = "text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script>
+		<style>
+		.form-popup {
+		  display: none;
+		  position: fixed;
+		  border: 3px solid #f1f1f1;
+		  z-index: 9;
+		}
+		</style>
 	</head>
 	<body>
 		<button id="qwerty" onclick="myFunction()"> test </button>
+		<button class="open-button" onclick="openForm()">Open Form</button>
+		<div class="form-popup" id="myForm">
+		  <form action="/action_page.php" class="form-container">
+			<h1>Login</h1>
+
+			<label for="email"><b>Email</b></label>
+			<input type="text" placeholder="Enter Email" name="email" id="email" required>
+
+			<label for="psw"><b>Password</b></label>
+			<input type="password" placeholder="Enter Password" name="psw" required>
+
+			<button type="submit" class="btn">Login</button>
+			<button type="button" class="btn cancel" onclick="closeForm()">Close</button>
+		  </form>
+		</div>
+		<!-- https://codepen.io/b-bharath/pen/eYxEjjZ -->
+		<script>
+		function openForm() {
+		  var xhttp = new XMLHttpRequest();
+		  xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+			  document.getElementById("demo").innerHTML =
+			  this.responseText;
+			}
+		  };
+		  xhttp.open("GET", "xmlhttp_info.txt", true);
+		  xhttp.send();
+		  document.getElementById("myForm").style.display = "block";
+		}
+
+		function closeForm() {
+		  document.getElementById("myForm").style.display = "none";
+		}
+		</script>
 	</body>
 </html>
